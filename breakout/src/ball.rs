@@ -31,7 +31,7 @@ impl Ball {
     pub fn update(&mut self, ctx: &mut Context, paddle: &Paddle) -> GameResult{
         let dt = ggez::timer::delta(ctx).as_secs_f32();
 
-        if keyboard::is_key_pressed(ctx, event::KeyCode::Space) {
+        if keyboard::is_key_pressed(ctx, event::KeyCode::Space) && self.fire_ball == false {
             self.fire_ball = true;
             self.randomise_vec(BALL_SPEED, BALL_SPEED);
         }
