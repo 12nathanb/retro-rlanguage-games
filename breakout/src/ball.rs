@@ -28,7 +28,7 @@ impl Ball {
         }
     }
 
-    pub fn update(&mut self, ctx: &mut Context, paddle: &Paddle) {
+    pub fn update(&mut self, ctx: &mut Context, paddle: &Paddle) -> GameResult{
         let dt = ggez::timer::delta(ctx).as_secs_f32();
 
         if keyboard::is_key_pressed(ctx, event::KeyCode::Space) {
@@ -62,6 +62,8 @@ impl Ball {
         if self.intersects_player(paddle) {
             self.ball_vel.y = - self.ball_vel.y.abs();
         }
+
+        Ok(())
     }
 
     pub fn draw(&self, ctx: &mut Context) -> GameResult {

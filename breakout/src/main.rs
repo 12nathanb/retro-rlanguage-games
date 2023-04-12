@@ -17,12 +17,10 @@ struct MainState {
 
 impl MainState {
     pub fn new(ctx: &mut Context) -> Self {
-        let(screen_w, screen_h) = graphics::drawable_size(ctx);
-        let screen_w_half = screen_h * 0.5;
-
+        let screen_size = graphics::drawable_size(ctx);
         MainState{
-            player_1 : Paddle::new(screen_w, screen_h),
-            ball: Ball::new(na::Point2::new(screen_w_half, screen_h - (RACKET_HEIGHT * 2.0)), graphics::drawable_size(ctx))
+            player_1 : Paddle::new(na::Point2::new(screen_size.0 * 0.5, screen_size.1 - RACKET_HEIGHT), graphics::drawable_size(ctx)),
+            ball: Ball::new(na::Point2::new(screen_size.0 * 0.5, screen_size.1 - (RACKET_HEIGHT * 2.0)), graphics::drawable_size(ctx))
         }
     }
 }
