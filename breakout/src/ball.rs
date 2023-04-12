@@ -29,21 +29,16 @@ impl Ball {
     }
 
     pub fn update(&mut self, ctx: &mut Context, paddle: &Paddle) -> GameResult{
-        let dt = ggez::timer::delta(ctx).as_secs_f32();
+        
 
         if keyboard::is_key_pressed(ctx, event::KeyCode::Space) && self.fire_ball == false {
             self.fire_ball = true;
             self.randomise_vec(BALL_SPEED, BALL_SPEED);
         }
 
-        if self.fire_ball {
-            self.ball_pos += self.ball_vel * dt;
-        } else {
-            self.ball_pos.x = paddle.get_player_pos().x;
-        }
+        
 
         if self.ball_pos.y > self.screen_size.1 { 
-            self.reset_ball(paddle);
             self.fire_ball = false;
             self.randomise_vec(BALL_SPEED, BALL_SPEED);
         }
@@ -57,10 +52,6 @@ impl Ball {
         }  else if self.ball_pos.x > self.screen_size.0 - BALL_SIZE_HALF {
             self.ball_pos.x = self.screen_size.0 - BALL_SIZE_HALF;
             self.ball_vel.x = - self.ball_vel.x.abs();
-        }
-
-        if self.intersects_player(paddle) {
-            self.ball_vel.y = - self.ball_vel.y.abs();
         }
 
         Ok(())
@@ -90,15 +81,35 @@ impl Ball {
         };
     }
 
-    fn intersects_player(&self, paddle: &Paddle) -> bool {
+    pub fn get_fire_ball(&self) -> bool {
+        return self.fire_ball;
+    }
+
+    pub fn get_ball_vel(&self) -> na::Vector2<f32> {
+        return self.ball_vel;
+    }
+
+    pub fn launch_ball(&mut self, direction: na::Vector2<f32>) {
+        self.ball_pos += direction;
+    }
+
+    pub fn reverse_velocity(&mut self) {
+        self.ball_vel.y = - self.ball_vel.y.abs();
+    }
+
+    pub fn get_pos(&self) -> na::Point2<f32> {
+        return self.ball_pos;
+    }
+
+    pub fn intersects_player(&self, paddle: &Paddle) -> bool {
         return self.ball_pos.x - BALL_SIZE_HALF < paddle.get_player_pos().x + paddle.get_player_dimensions_half().0
             && self.ball_pos.x + BALL_SIZE_HALF > paddle.get_player_pos().x - paddle.get_player_dimensions_half().0
             && self.ball_pos.y - BALL_SIZE_HALF < paddle.get_player_pos().y + paddle.get_player_dimensions_half().1
             && self.ball_pos.y + BALL_SIZE_HALF > paddle.get_player_pos().y - paddle.get_player_dimensions_half().1;
     }
 
-    fn reset_ball(&mut self, paddle: &Paddle) {
-        self.ball_pos.x = paddle.get_player_pos().x;
-        self.ball_pos.y = paddle.get_player_pos().y - paddle.get_player_dimensions().1;
+    pub fn reset_ball(&mut self, x: f32, y: f32) {
+        self.ball_pos.x = x;
+        self.ball_pos.y = y;
     }
 }
