@@ -1,36 +1,32 @@
 use ggez::glam::Vec2;
-use ggez::graphics::{Canvas, Color, Rect, Mesh};
+use ggez::graphics::{Canvas, Color, Mesh, Rect};
+use ggez::input::keyboard;
 use ggez::{self, graphics};
 use ggez::{Context, GameResult};
-use ggez::input::keyboard;
 
-use crate::game::{constants::*};
-
+use crate::game::constants::*;
 
 pub struct Paddle {
     pub paddle_pos: ggez::glam::Vec2,
     pub paddle_mesh: Mesh,
     pub paddle_rect: Rect,
-    pub paddle_vel: f32
+    pub paddle_vel: f32,
 }
 
 impl Paddle {
     pub fn new(ctx: &Context, paddle_pos: ggez::glam::Vec2) -> Paddle {
         print!("{}\n", ctx.gfx.drawable_size().0);
-        let racket_rect = Rect::new(0.0,  0.0 , RACKET_WIDTH, RACKET_HEIGHT);
+        let racket_rect = Rect::new(0.0, 0.0, RACKET_WIDTH, RACKET_HEIGHT);
 
-        let racket_mesh = Mesh::new_rectangle(
-            ctx,
-            graphics::DrawMode::fill(),
-            racket_rect,
-            Color::WHITE
-        ).unwrap();
-        
-        Paddle { 
-            paddle_pos : paddle_pos,
+        let racket_mesh =
+            Mesh::new_rectangle(ctx, graphics::DrawMode::fill(), racket_rect, Color::WHITE)
+                .unwrap();
+
+        Paddle {
+            paddle_pos: paddle_pos,
             paddle_mesh: racket_mesh,
             paddle_rect: racket_rect,
-            paddle_vel: 0.0
+            paddle_vel: 0.0,
         }
     }
 
@@ -53,14 +49,16 @@ impl Paddle {
         self.clamp(0.0, ctx.gfx.drawable_size().0 - RACKET_WIDTH);
     }
 
-
     pub fn update(&mut self, ctx: &mut Context) {
         self.move_paddle(keyboard::KeyCode::A, 1.0, ctx);
         self.move_paddle(keyboard::KeyCode::D, -1.0, ctx);
     }
 
-    pub fn draw(&self, canvas: &mut Canvas) -> GameResult{
-        canvas.draw(&self.paddle_mesh, Vec2::new(self.paddle_pos.x, self.paddle_pos.y));
+    pub fn draw(&self, canvas: &mut Canvas) -> GameResult {
+        canvas.draw(
+            &self.paddle_mesh,
+            Vec2::new(self.paddle_pos.x, self.paddle_pos.y),
+        );
         Ok(())
     }
 }
