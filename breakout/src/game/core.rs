@@ -23,35 +23,30 @@ impl MainState {
 
         let block_size = ((screen_size.0 * 2.0)/14.0, (screen_size.1 * 0.5)/ 8.0);
 
+        let mut temp_color = (0, 0, 0);
+
         for x in 0..BLOCK_AMOUNT_F32.0 {
             for y in 0..BLOCK_AMOUNT_F32.1 {
                 if y == 0 || y == 1 {
-                    blocks.push(Block::new(Vec2::new(
-                        block_size.0 - 20.0, block_size.1 - 20.0), 
-                        Vec2::new(x as f32 * block_size.0, (y as f32 * block_size.1) + 200.0), 
-                        DARK_RED))
+                    temp_color = DARK_RED;
                 }
 
                 if y == 2 || y == 3 {
-                    blocks.push(Block::new(Vec2::new(
-                        block_size.0 - 20.0, block_size.1 - 20.0), 
-                        Vec2::new(x as f32 * block_size.0, (y as f32 * block_size.1) + 200.0), 
-                        DARK_ORANGE))
+                    temp_color = DARK_ORANGE;
                 }
 
                 if y == 4 || y == 5 {
-                    blocks.push(Block::new(Vec2::new(
-                        block_size.0 - 20.0, block_size.1 - 20.0), 
-                        Vec2::new(x as f32 * block_size.0, (y as f32 * block_size.1) + 200.0), 
-                        DARK_GREEN))
+                    temp_color = DARK_GREEN;
                 }
 
                 if y == 6 || y == 7 {
-                    blocks.push(Block::new(Vec2::new(
-                        block_size.0 - 20.0, block_size.1 - 20.0), 
-                        Vec2::new(x as f32 * block_size.0, (y as f32 * block_size.1) + 200.0), 
-                        DARK_YELLOW))
+                    temp_color = DARK_YELLOW;
                 }
+
+                blocks.push(Block::new(Vec2::new(
+                    block_size.0 - 20.0, block_size.1 - 20.0), 
+                    Vec2::new(x as f32 * block_size.0, (y as f32 * block_size.1) + 200.0), 
+                    temp_color))
                 
             }
         }
@@ -75,9 +70,10 @@ impl MainState {
 
 impl event::EventHandler<GameError> for MainState {
     fn update(&mut self, _ctx: &mut Context) -> GameResult {
-        self.ball.update(_ctx, self.player.paddle_pos)?;
+        self.ball.update(_ctx, self.player.paddle_pos, self.player.paddle_vel)?;
         self.player.update(_ctx);
 
+        print!("{} {}\n", self.player.paddle_rect.x, self.player.paddle_rect.y);
         if self.ball.ball_pos.y >= _ctx.gfx.drawable_size().1 {
             print!("Life lost\n");
             self.lives -= 1;
@@ -86,7 +82,7 @@ impl event::EventHandler<GameError> for MainState {
         for i in 0..self.blocks.len() {
             if self.intersects_player(self.blocks[i].block_pos) {
                 self.blocks.remove(i);
-                self.ball.un_reverse_velocity();
+                self.ball.reverse_velocity();
                 break;
             }
         }

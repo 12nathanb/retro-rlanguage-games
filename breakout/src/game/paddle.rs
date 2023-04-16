@@ -9,13 +9,15 @@ use crate::game::{constants::*};
 
 pub struct Paddle {
     pub paddle_pos: ggez::glam::Vec2,
-    pub paddle_mesh: Mesh
+    pub paddle_mesh: Mesh,
+    pub paddle_rect: Rect,
+    pub paddle_vel: f32
 }
 
 impl Paddle {
     pub fn new(ctx: &Context, paddle_pos: ggez::glam::Vec2) -> Paddle {
         print!("{}\n", ctx.gfx.drawable_size().0);
-        let racket_rect = Rect::new(0.0, 0.0, RACKET_WIDTH, RACKET_HEIGHT);
+        let racket_rect = Rect::new(0.0,  0.0 , RACKET_WIDTH, RACKET_HEIGHT);
 
         let racket_mesh = Mesh::new_rectangle(
             ctx,
@@ -26,7 +28,9 @@ impl Paddle {
         
         Paddle { 
             paddle_pos : paddle_pos,
-            paddle_mesh: racket_mesh
+            paddle_mesh: racket_mesh,
+            paddle_rect: racket_rect,
+            paddle_vel: 0.0
         }
     }
 
@@ -42,6 +46,7 @@ impl Paddle {
         let dt = ctx.time.delta().as_secs_f32();
         if ctx.keyboard.is_key_pressed(keycode) {
             self.paddle_pos.x -= x_dir * PLAYER_SPEED * dt;
+            self.paddle_vel = x_dir;
             print!("X: {} Y: {}\n", self.paddle_pos.x, self.paddle_pos.y);
         }
 

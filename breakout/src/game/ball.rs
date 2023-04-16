@@ -1,5 +1,5 @@
 use ggez::glam::Vec2;
-use ggez::graphics::{Mesh, Canvas};
+use ggez::graphics::{Mesh, Canvas, Rect};
 use ggez::{self, graphics};
 use ggez::{Context, GameResult};
 use rand::{thread_rng, Rng};
@@ -12,7 +12,9 @@ pub struct Ball {
     pub ball_pos: Vec2,
     ball_vel: Vec2,
     fire_ball: bool,
-    ball_mesh: Mesh
+    ball_mesh: Mesh,
+    pub ball_rect: Rect,
+    multiplyer: f32
 }
 
 impl Ball {
@@ -25,17 +27,19 @@ impl Ball {
             ball_pos: ball_pos,
             ball_vel: Vec2::new(0.0, 0.0),
             fire_ball: false,
-            ball_mesh: ball_mesh
+            ball_mesh: ball_mesh,
+            ball_rect: ball_rect,
+            multiplyer: 0.0
         }
     }
 
-    pub fn update(&mut self, ctx: &mut Context, player_pos: Vec2) -> GameResult{
+    pub fn update(&mut self, ctx: &mut Context, player_pos: Vec2, player_vel: f32) -> GameResult{
 
         if self.fire_ball == false {
             self.reset_ball(player_pos.x + RACKET_WIDTH_HALF, player_pos.y - RACKET_HEIGHT_HALF);
         } else {
             //self.launch_ball(self.ball_vel);
-            self.ball_pos += self.ball_vel * ctx.time.delta().as_secs_f32();
+            self.ball_pos += self.ball_vel  * ctx.time.delta().as_secs_f32();
 
         }
         
@@ -47,12 +51,14 @@ impl Ball {
         
         if self.intersects_player(player_pos) {
             //self.randomise_vec(BALL_SPEED, BALL_SPEED);
-            self.reverse_velocity();
+            self.multiplyer += 10.0;
+            self.player_reverse_velocity(player_vel);
         }
         
 
         if self.ball_pos.y > ctx.gfx.drawable_size().1 { 
             self.fire_ball = false;
+            self.multiplyer = 0.0;
         }
 
         if self.ball_pos.y < BALL_SIZE_HALF {
@@ -82,17 +88,18 @@ impl Ball {
         };
     
         self.ball_vel.y = match rng.gen_bool(0.5) {
-            true => y,
+            true => -y,
             false => -y
         };
     }
 
     pub fn reverse_velocity(&mut self) {
-        self.ball_vel.y = - self.ball_vel.y.abs();
+        self.ball_vel.y *= -1.0;
     }
 
-    pub fn un_reverse_velocity(&mut self) {
-        self.ball_vel.y = self.ball_vel.y.abs();
+    pub fn player_reverse_velocity(&mut self, player_vel: f32) {
+        self.ball_vel.y = - self.ball_vel.y.abs();
+        self.ball_vel.x *= - player_vel.abs();
     }
 
 
