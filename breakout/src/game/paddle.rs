@@ -42,6 +42,7 @@ impl Paddle {
         let dt = ctx.time.delta().as_secs_f32();
         if ctx.keyboard.is_key_pressed(keycode) {
             self.paddle_pos.x -= x_dir * PLAYER_SPEED * dt;
+            print!("X: {} Y: {}\n", self.paddle_pos.x, self.paddle_pos.y);
         }
 
         self.clamp(0.0, ctx.gfx.drawable_size().0 - RACKET_WIDTH);
@@ -51,9 +52,6 @@ impl Paddle {
     pub fn update(&mut self, ctx: &mut Context) {
         self.move_paddle(keyboard::KeyCode::A, 1.0, ctx);
         self.move_paddle(keyboard::KeyCode::D, -1.0, ctx);
-
-        print!("X: {} Y: {}\n", self.paddle_pos.x, self.paddle_pos.y);
-        print!("X: {} Y: {}\n", ctx.gfx.drawable_size().0, ctx.gfx.drawable_size().1);        
     }
 
     pub fn draw(&self, canvas: &mut Canvas) -> GameResult{

@@ -1,7 +1,7 @@
-use ggez::{event, GameResult, graphics};
+use ggez::{event, GameResult};
 
 mod game;
-use game::{core::MainState, constants};
+use game::{core::MainState};
 
 pub fn main() -> GameResult{
     let cb = ggez::ContextBuilder::new("Breakout", "Nathan Barnett")

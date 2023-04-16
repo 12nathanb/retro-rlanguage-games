@@ -2,18 +2,17 @@ use ggez::{
     event,
     Context,
     GameResult, 
-    graphics::{self, Color, ScreenImage}, GameError, glam::Vec2
+    graphics::{self, Color}, GameError, glam::Vec2
 };
 
-use crate::game::{paddle::Paddle, ball::Ball, block::{Block, self}, constants::*};
-
-use super::constants::BLOCK_AMOUNT;
+use crate::game::{paddle::Paddle, ball::Ball, block::{Block}, constants::*};
 
 pub struct MainState {
     player: Paddle,
     ball: Ball,
     blocks: Vec<Block>,
-    block_size: (f32, f32)
+    block_size: (f32, f32),
+    lives: i32
 }
 
 impl MainState {
@@ -22,11 +21,38 @@ impl MainState {
         let screen_size = (_ctx.gfx.drawable_size().0, _ctx.gfx.drawable_size().1);
         
 
-        let block_size = ((screen_size.0 * 2.0)/10.0, screen_size.1 / 10.0);
+        let block_size = ((screen_size.0 * 2.0)/14.0, (screen_size.1 * 0.5)/ 8.0);
 
         for x in 0..BLOCK_AMOUNT_F32.0 {
             for y in 0..BLOCK_AMOUNT_F32.1 {
-                blocks.push(Block::new(_ctx, Vec2::new(block_size.0, block_size.1), Vec2::new(x as f32 * block_size.0, y as f32 * block_size.1) ))
+                if y == 0 || y == 1 {
+                    blocks.push(Block::new(Vec2::new(
+                        block_size.0 - 20.0, block_size.1 - 20.0), 
+                        Vec2::new(x as f32 * block_size.0, (y as f32 * block_size.1) + 200.0), 
+                        DARK_RED))
+                }
+
+                if y == 2 || y == 3 {
+                    blocks.push(Block::new(Vec2::new(
+                        block_size.0 - 20.0, block_size.1 - 20.0), 
+                        Vec2::new(x as f32 * block_size.0, (y as f32 * block_size.1) + 200.0), 
+                        DARK_ORANGE))
+                }
+
+                if y == 4 || y == 5 {
+                    blocks.push(Block::new(Vec2::new(
+                        block_size.0 - 20.0, block_size.1 - 20.0), 
+                        Vec2::new(x as f32 * block_size.0, (y as f32 * block_size.1) + 200.0), 
+                        DARK_GREEN))
+                }
+
+                if y == 6 || y == 7 {
+                    blocks.push(Block::new(Vec2::new(
+                        block_size.0 - 20.0, block_size.1 - 20.0), 
+                        Vec2::new(x as f32 * block_size.0, (y as f32 * block_size.1) + 200.0), 
+                        DARK_YELLOW))
+                }
+                
             }
         }
         print!("{}\n", _ctx.gfx.drawable_size().1);
@@ -34,7 +60,8 @@ impl MainState {
             player: Paddle::new(_ctx, Vec2::new(_ctx.gfx.drawable_size().0 * 0.5, (_ctx.gfx.drawable_size().1 * 2.0) - (RACKET_HEIGHT * 2.0))),
             ball: Ball::new(_ctx, Vec2::new(0.0,0.0)),
             blocks: blocks,
-            block_size: block_size
+            block_size: block_size,
+            lives: 3
         }
     }
 
@@ -51,6 +78,11 @@ impl event::EventHandler<GameError> for MainState {
         self.ball.update(_ctx, self.player.paddle_pos)?;
         self.player.update(_ctx);
 
+        if self.ball.ball_pos.y >= _ctx.gfx.drawable_size().1 {
+            print!("Life lost\n");
+            self.lives -= 1;
+        }
+
         for i in 0..self.blocks.len() {
             if self.intersects_player(self.blocks[i].block_pos) {
                 self.blocks.remove(i);
@@ -58,16 +90,21 @@ impl event::EventHandler<GameError> for MainState {
                 break;
             }
         }
+
         Ok(())
     }
 
     fn draw(&mut self, _ctx: &mut Context) -> GameResult {
         let mut canvas = graphics::Canvas::from_frame(_ctx, Color::BLACK);
         self.player.draw(&mut canvas)?;
+
+       
         self.ball.draw(&mut canvas)?;
         for block in &self.blocks {
-            block.draw(_ctx, &mut canvas);
+            block.draw(_ctx, &mut canvas)?;
         }
+    
+        
         canvas.finish(_ctx)?;
 
         Ok(())

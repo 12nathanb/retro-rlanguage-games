@@ -10,9 +10,9 @@ pub const RACKET_WIDTH: f32 = 200.0;
 pub const RACKET_HEIGHT_HALF: f32 = RACKET_HEIGHT * 0.5;
 pub const RACKET_WIDTH_HALF: f32 = RACKET_WIDTH * 0.5;
 
-// screen constants 
-pub const SCREEN_SIZE: (f32, f32) = (600.0, 600.0);
-
-// block sizes
-pub const BLOCK_AMOUNT: (usize, usize) = (10, 10);
-pub const BLOCK_AMOUNT_F32: (i32, i32) = (10, 10);
+// block stuff
+pub const BLOCK_AMOUNT_F32: (i32, i32) = (14, 8);
+pub const DARK_RED: (u8,u8,u8) = (165, 8, 1);
+pub const DARK_ORANGE: (u8,u8,u8) = (199, 126, 0);
+pub const DARK_YELLOW: (u8,u8,u8) = (199, 196, 23);
+pub const DARK_GREEN: (u8,u8,u8) = (0, 127, 37);
