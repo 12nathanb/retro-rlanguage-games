@@ -50,6 +50,7 @@ impl Paddle {
     }
 
     pub fn update(&mut self, ctx: &mut Context) {
+        self.paddle_vel = 0.0;
         self.move_paddle(keyboard::KeyCode::A, 1.0, ctx);
         self.move_paddle(keyboard::KeyCode::D, -1.0, ctx);
     }

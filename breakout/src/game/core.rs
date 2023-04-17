@@ -1,3 +1,5 @@
+use std::fmt::format;
+
 use ggez::{
     event,
     glam::Vec2,
@@ -61,7 +63,7 @@ impl MainState {
             ball: Ball::new(_ctx, Vec2::new(0.0, 0.0)),
             blocks: blocks,
             block_size: block_size,
-            lives: 3,
+            lives: 7,
         }
     }
 
@@ -79,19 +81,6 @@ impl event::EventHandler<GameError> for MainState {
             .update(_ctx, self.player.paddle_pos, self.player.paddle_vel)?;
         self.player.update(_ctx);
 
-        print!("Lives: {}\n", self.lives);
-
-        print!(
-            "PLAYER {} {}\n",
-            self.player.paddle_rect.x, self.player.paddle_rect.y
-        );
-        print!("BALL {} {}\n", self.ball.ball_pos.x, self.ball.ball_pos.y);
-        print!(
-            "SCREEN {} {}\n",
-            _ctx.gfx.drawable_size().0,
-            _ctx.gfx.drawable_size().1
-        );
-
         for i in 0..self.blocks.len() {
             if self.intersects_player(self.blocks[i].block_pos) {
                 self.blocks.remove(i);
@@ -100,15 +89,16 @@ impl event::EventHandler<GameError> for MainState {
             }
         }
 
-        if self.ball.ball_pos.y > _ctx.gfx.drawable_size().1 {
-            print!("Life lost\n");
-            print!("--BALL {} {}\n", self.ball.ball_pos.x, self.ball.ball_pos.y);
-            print!(
-                "--SCREEN {} {}\n",
-                _ctx.gfx.drawable_size().0,
-                _ctx.gfx.drawable_size().1
-            );
-            self.lives -= 1;
+        if self.lives < 0 {
+            self.lives = 3;
+        } else if self.lives > 0 {
+            if self.ball.ball_pos.y > _ctx.gfx.drawable_size().1 {
+                self.ball.fire_ball = false;
+                self.lives -= 1;
+            }
+        } else if self.lives == 0 {
+            self.ball.fire_ball = false;
+            self.ball.multiplyer = 0.0;
         }
 
         Ok(())
@@ -116,12 +106,20 @@ impl event::EventHandler<GameError> for MainState {
 
     fn draw(&mut self, _ctx: &mut Context) -> GameResult {
         let mut canvas = graphics::Canvas::from_frame(_ctx, Color::BLACK);
-        self.player.draw(&mut canvas)?;
 
-        self.ball.draw(&mut canvas)?;
+        if self.lives != 0 {
+            self.player.draw(&mut canvas)?;
+            self.ball.draw(&mut canvas)?;
 
-        for block in &self.blocks {
-            block.draw(_ctx, &mut canvas)?;
+            for block in &self.blocks {
+                block.draw(_ctx, &mut canvas)?;
+            }
+
+            let mut lives_text = graphics::Text::new(format!("Lives: {}", self.lives));
+            let score_pos = Vec2::new(50.0, 50.0);
+            lives_text.set_scale(100.0);
+
+            canvas.draw(&lives_text, score_pos);
         }
 
         canvas.finish(_ctx)?;
