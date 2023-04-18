@@ -1,24 +1,79 @@
 use ggez::glam::Vec2;
-use ggez::graphics::{Canvas, Mesh, Rect};
+use ggez::graphics::Canvas;
 use ggez::input::keyboard;
 use ggez::{self, graphics};
 use ggez::{Context, GameResult};
 use rand::{thread_rng, Rng};
 
-use crate::game::constants::*;
+use super::paddle::Paddle;
 
 pub struct Ball {
     pub ball_pos: Vec2,
     ball_vel: Vec2,
+    pub ball_size: Vec2,
     pub fire_ball: bool,
-    ball_mesh: Mesh,
-    pub ball_rect: Rect,
     pub multiplyer: f32,
+    ball_speed: f32,
 }
 
 impl Ball {
-    pub fn new(ctx: &Context, ball_pos: Vec2) -> Ball {
-        let ball_rect = graphics::Rect::new(-BALL_SIZE_HALF, -BALL_SIZE_HALF, BALL_SIZE, BALL_SIZE);
+    pub fn new() -> Ball {
+        Ball {
+            ball_pos: Vec2::new(0.0, 0.0),
+            ball_vel: Vec2::new(0.0, 0.0),
+            ball_size: Vec2::new(0.0, 0.0),
+            fire_ball: false,
+            multiplyer: 0.0,
+            ball_speed: 0.0,
+        }
+    }
+
+    pub fn update(
+        &mut self,
+        ctx: &mut Context,
+        player: &Paddle,
+        screen_size: (f32, f32),
+    ) -> GameResult {
+        if self.ball_pos.y < (self.ball_size.x * 0.5) + (screen_size.1 * 0.1) {
+            self.ball_pos.y = (self.ball_size.x * 0.5) + (screen_size.1 * 0.1);
+            self.ball_vel.y = self.ball_vel.y.abs();
+        } else if self.ball_pos.x < (self.ball_size.x * 0.5) {
+            self.ball_pos.x = self.ball_size.x * 0.5;
+            self.ball_vel.x = self.ball_vel.x.abs();
+        } else if self.ball_pos.x > ctx.gfx.drawable_size().0 - (self.ball_size.x * 0.5) {
+            self.ball_pos.x = ctx.gfx.drawable_size().0 - (self.ball_size.x * 0.5);
+            self.ball_vel.x = -self.ball_vel.x.abs();
+        }
+
+        if self.fire_ball == false {
+            self.reset_ball(
+                player.paddle_pos.x + (player.paddle_size.x * 0.5),
+                player.paddle_pos.y - (player.paddle_size.y * 0.5),
+            );
+        } else {
+            self.ball_pos += self.ball_vel * ctx.time.delta().as_secs_f32();
+        }
+
+        if ctx.keyboard.is_key_pressed(keyboard::KeyCode::Space) && self.fire_ball == false {
+            self.fire_ball = true;
+            self.randomise_vec(self.ball_speed, self.ball_speed);
+        }
+
+        if self.intersects_player(player) {
+            self.multiplyer += 1.0;
+            self.player_reverse_velocity();
+        }
+
+        Ok(())
+    }
+
+    pub fn draw(&self, canvas: &mut Canvas, ctx: &Context) -> GameResult {
+        let ball_rect = graphics::Rect::new(
+            -(self.ball_size.x * 0.5),
+            -(self.ball_size.y * 0.5),
+            self.ball_size.x,
+            self.ball_size.y,
+        );
         let ball_mesh = graphics::Mesh::new_rectangle(
             ctx,
             graphics::DrawMode::fill(),
@@ -27,60 +82,13 @@ impl Ball {
         )
         .unwrap();
 
-        Ball {
-            ball_pos: ball_pos,
-            ball_vel: Vec2::new(0.0, 0.0),
-            fire_ball: false,
-            ball_mesh: ball_mesh,
-            ball_rect: ball_rect,
-            multiplyer: 0.0,
-        }
-    }
-
-    pub fn update(&mut self, ctx: &mut Context, player_pos: Vec2, player_vel: f32) -> GameResult {
-        if self.ball_pos.y < BALL_SIZE_HALF + 200.0 {
-            self.ball_pos.y = BALL_SIZE_HALF + 200.0;
-            self.ball_vel.y = self.ball_vel.y.abs();
-        } else if self.ball_pos.x < BALL_SIZE_HALF {
-            self.ball_pos.x = BALL_SIZE_HALF;
-            self.ball_vel.x = self.ball_vel.x.abs();
-        } else if self.ball_pos.x > ctx.gfx.drawable_size().0 - BALL_SIZE_HALF {
-            self.ball_pos.x = ctx.gfx.drawable_size().0 - BALL_SIZE_HALF;
-            self.ball_vel.x = -self.ball_vel.x.abs();
-        }
-
-        if self.fire_ball == false {
-            self.reset_ball(
-                player_pos.x + RACKET_WIDTH_HALF,
-                player_pos.y - RACKET_HEIGHT_HALF,
-            );
-        } else {
-            //self.launch_ball(self.ball_vel);
-            self.ball_pos += self.ball_vel * ctx.time.delta().as_secs_f32();
-        }
-
-        if ctx.keyboard.is_key_pressed(keyboard::KeyCode::Space) && self.fire_ball == false {
-            self.fire_ball = true;
-            self.randomise_vec(BALL_SPEED, BALL_SPEED);
-        }
-
-        if self.intersects_player(player_pos) {
-            //self.randomise_vec(BALL_SPEED, BALL_SPEED);
-            self.multiplyer += 1.0;
-            self.player_reverse_velocity(player_vel);
-        }
-
-        // if self.ball_pos.y > ctx.gfx.drawable_size().1 {
-        //     self.fire_ball = false;
-        //     self.multiplyer = 0.0;
-        // }
-
+        canvas.draw(&ball_mesh, self.ball_pos);
         Ok(())
     }
 
-    pub fn draw(&self, canvas: &mut Canvas) -> GameResult {
-        canvas.draw(&self.ball_mesh, self.ball_pos);
-        Ok(())
+    pub fn update_ball_size(&mut self, screen_size: (f32, f32)) {
+        self.ball_size = Vec2::new(screen_size.1 / 40.0, screen_size.1 / 40.0);
+        self.ball_speed = screen_size.1 * 0.6;
     }
 
     fn randomise_vec(&mut self, x: f32, y: f32) {
@@ -100,17 +108,16 @@ impl Ball {
         self.ball_vel.y *= -1.0;
     }
 
-    pub fn player_reverse_velocity(&mut self, player_vel: f32) {
+    pub fn player_reverse_velocity(&mut self) {
         self.ball_vel.y = -self.ball_vel.y.abs() + -self.multiplyer;
-        //self.ball_vel.x = -self.ball_vel.x.abs();
-        print!("{}\n", player_vel)
     }
 
-    pub fn intersects_player(&self, paddle: Vec2) -> bool {
-        return self.ball_pos.x - BALL_SIZE_HALF < paddle.x + RACKET_WIDTH
-            && self.ball_pos.x + BALL_SIZE_HALF > paddle.x
-            && self.ball_pos.y - BALL_SIZE_HALF < paddle.y
-            && self.ball_pos.y + BALL_SIZE_HALF > paddle.y;
+    pub fn intersects_player(&self, paddle: &Paddle) -> bool {
+        return self.ball_pos.x - (self.ball_size.x * 0.5)
+            < paddle.paddle_pos.x + paddle.paddle_size.x
+            && self.ball_pos.x + (self.ball_size.x * 0.5) > paddle.paddle_pos.x
+            && self.ball_pos.y - (self.ball_size.x * 0.5) < paddle.paddle_pos.y
+            && self.ball_pos.y + (self.ball_size.x * 0.5) > paddle.paddle_pos.y;
     }
 
     pub fn reset_ball(&mut self, x: f32, y: f32) {
