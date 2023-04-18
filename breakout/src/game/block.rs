@@ -4,7 +4,7 @@ use ggez::{
     Context, GameResult,
 };
 
-use super::constants::BLOCK_AMOUNT_F32;
+use super::constants::*;
 
 #[derive(Default)]
 pub struct Block {
@@ -15,12 +15,24 @@ pub struct Block {
 }
 
 impl Block {
-    pub fn new(color: (u8, u8, u8), block_coord: (i32, i32)) -> Block {
+    pub fn new(block_coord: (i32, i32)) -> Block {
+        let mut temp_color = (0, 0, 0);
+
+        if block_coord.1 == 0 || block_coord.1 == 1 {
+            temp_color = DARK_RED;
+        } else if block_coord.1 == 2 || block_coord.1 == 3 {
+            temp_color = DARK_ORANGE;
+        } else if block_coord.1 == 4 || block_coord.1 == 5 {
+            temp_color = DARK_GREEN;
+        } else if block_coord.1 == 6 || block_coord.1 == 7 {
+            temp_color = DARK_YELLOW;
+        }
+
         Block {
             block_size: Vec2::new(0.0, 0.0),
             block_pos: Vec2::new(0.0, 0.0),
             block_coord: block_coord,
-            selected_color: color,
+            selected_color: temp_color,
         }
     }
 
