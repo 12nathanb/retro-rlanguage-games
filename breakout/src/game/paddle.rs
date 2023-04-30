@@ -66,7 +66,10 @@ impl Paddle {
                 screen_size.1 - (self.paddle_size.y * 2.0),
             )
         } else {
-            self.paddle_pos = Vec2::new(self.paddle_pos.x, screen_size.1 - self.paddle_size.y)
+            self.paddle_pos = Vec2::new(
+                self.paddle_pos.x,
+                screen_size.1 - (self.paddle_size.y * 2.0),
+            )
         }
     }
 

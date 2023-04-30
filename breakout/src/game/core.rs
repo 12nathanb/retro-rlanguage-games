@@ -15,6 +15,7 @@ pub struct MainState {
     game_started: bool,
     current_window_size: (f32, f32),
     block_size: Vec2,
+    score: i32,
 }
 
 impl MainState {
@@ -46,6 +47,7 @@ impl MainState {
             game_started: false,
             current_window_size: screen_size,
             block_size: block_size_temp,
+            score: 0,
         }
     }
 
@@ -91,6 +93,7 @@ impl event::EventHandler<GameError> for MainState {
             if self.intersects_player(self.blocks[i].block_pos) {
                 self.blocks.remove(i);
                 self.ball.reverse_velocity();
+                self.score += 10;
                 break;
             }
         }
@@ -113,25 +116,43 @@ impl event::EventHandler<GameError> for MainState {
     fn draw(&mut self, _ctx: &mut Context) -> GameResult {
         let mut canvas = graphics::Canvas::from_frame(_ctx, Color::BLACK);
 
-        for block in &self.blocks {
-            block.draw(_ctx, &mut canvas)?;
+        if self.lives != 0 || !self.blocks.is_empty() {
+            for block in &self.blocks {
+                block.draw(_ctx, &mut canvas)?;
+            }
+
+            self.player.draw(&mut canvas, _ctx)?;
+            self.ball.draw(&mut canvas, _ctx)?;
+
+            let mut lives_text = graphics::Text::new(format!("Lives: {}", self.lives));
+            let mut score_text = graphics::Text::new(format!("Score: {}", self.score));
+
+            lives_text.set_scale(self.current_window_size.1 * 0.05);
+            score_text.set_scale(self.current_window_size.1 * 0.05);
+
+            let lives_pos = Vec2::new(
+                self.current_window_size.0 * 0.02,
+                self.current_window_size.1 * 0.02,
+            );
+
+            let score_pos = Vec2::new(
+                self.current_window_size.0 * 0.8,
+                self.current_window_size.1 * 0.02,
+            );
+
+            canvas.draw(&lives_text, lives_pos);
+            canvas.draw(&score_text, score_pos);
+        } else {
+            let mut gameover_text = graphics::Text::new(format!("GAMEOVER\nScore:{}", self.score));
+            gameover_text.set_scale(self.current_window_size.1 * 0.2);
+
+            let gameover_pos = Vec2::new(
+                self.current_window_size.0 * 0.17,
+                self.current_window_size.1 * 0.35,
+            );
+
+            canvas.draw(&gameover_text, gameover_pos);
         }
-
-        self.player.draw(&mut canvas, _ctx)?;
-
-        self.ball.draw(&mut canvas, _ctx)?;
-
-        let mut lives_text = graphics::Text::new(format!("Lives: {}", self.lives));
-
-        lives_text.set_scale(self.current_window_size.1 * 0.05);
-
-        let score_pos = Vec2::new(
-            self.current_window_size.0 * 0.02,
-            self.current_window_size.1 * 0.02,
-        );
-
-        canvas.draw(&lives_text, score_pos);
-
         canvas.finish(_ctx)?;
 
         Ok(())
